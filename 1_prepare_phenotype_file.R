@@ -108,10 +108,10 @@ if ( length(grep("modified",report))>0) {
         git_hash = system("git log --pretty=format:'%h' -n 1",intern = T)  # get recent git commit version
 }
 time_stamp = gsub("-","",substr(Sys.time(),1,10))
-file_name = paste("pheno1_moms_JB_nCaCo-",
+file_name = paste("pheno1_moms_nCaCo-",
                   sum(phe$miscrr==1,na.rm = T),"-",
-                  sum(phe$miscrr==0,na.rm = T),"-",
-                  "_",git_hash,"_",time_stamp,".txt",sep="")
+                  sum(phe$miscrr==0,na.rm = T),
+                  "_",git_hash,"_",time_stamp,"_JB.txt",sep="")
 write.table(phe,file_name,row.names = F,col.names = T,sep="\t",quote=F)  # local
-# note, for SNPTEST a second header must be added manually!
 
+# note, for SNPTEST a second header must be added manually (by Julius, after adding PCs) !
