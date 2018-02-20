@@ -5,6 +5,17 @@
 
 setwd("~/Dropbox/GIT/MOBA_MISCARRIAGE_META_EGCUT/") # 1_prepare_phenotype_file.R
 
+####  reproducibility section:  code-hash and time-stamp
+report = system("git status",intern = T)
+if ( length(grep("modified",report))>0) {
+        git_hash = "--???--" # warn user that script does not represent the contents
+} else {
+        git_hash = system("git log --pretty=format:'%h' -n 1",intern = T)  # get recent git commit version
+}
+time_stamp = gsub("-","",substr(Sys.time(),1,10))
+
+
+
 mfr = read.table("~/Biostuff/MOBA_PDB1724/Data/PDB1724_MBRN_460_v9.csv",h=T,sep=",",stringsAsFactors = F)
 mfr = mfr[,c("PREG_ID_1724","SPABORT_12_5","SPABORT_23_5","MORS_ALDER","PARITET_5","FAAR","KILDE")]
 #mfr[1:10,]
@@ -82,7 +93,14 @@ length(contr_ix)
 cases = tbl$SentrixID_1[case_ix]
 contr = tbl$SentrixID_1[contr_ix]
 
-# prepare autosome pheno file
+#####
+##### prepare PHENOTYPE files
+#####
+
+##
+##  AUTOSOMES
+##
+
 phe = read.table("~/Biostuff/mount_hunt/GWAS_MISCARRIAGE/momIDs_autosom.txt",h=F,stringsAsFactors = F)
 colnames(phe)[1] = "ID_1"
 phe$ID_2 = phe$ID_1
@@ -91,27 +109,48 @@ phe$miscrr = NA
 phe$miscrr[which(phe$ID_1 %in% cases)] = 1
 phe$miscrr[which(phe$ID_1 %in% contr)] = 0
 phe$seq = seq(nrow(phe))
-head(phe)
 
 mby = tbl[,c("SentrixID_1","MatBirthYear")]
 tmp = merge(phe,mby,by.x="ID_1",by.y="SentrixID_1",all.x=T)
 tmp = tmp[order(tmp$seq),]
-phe = tmp[,c("ID_1","ID_2","missing","miscrr","MatBirthYear")]
-head(phe)
+phe_autosomes = tmp[,c("ID_1","ID_2","missing","miscrr","MatBirthYear")]
+
+##
+##  X-chromosome
+##
+
+phe = read.table("~/Biostuff/mount_hunt/GWAS_MISCARRIAGE/momIDs_xchromo.txt",h=F,stringsAsFactors = F)
+colnames(phe)[1] = "ID_1"
+phe$ID_2 = phe$ID_1
+phe$missing = 0
+phe$miscrr = NA
+phe$miscrr[which(phe$ID_1 %in% cases)] = 1
+phe$miscrr[which(phe$ID_1 %in% contr)] = 0
+phe$seq = seq(nrow(phe))
+
+mby = tbl[,c("SentrixID_1","MatBirthYear")]
+tmp = merge(phe,mby,by.x="ID_1",by.y="SentrixID_1",all.x=T)
+tmp = tmp[order(tmp$seq),]
+phe_xchromosome = tmp[,c("ID_1","ID_2","missing","miscrr","MatBirthYear")]
+
+#####
+##### export pheno files
+#####
+
+file_name_A = paste("phe1_auto_nCaCo-",
+                  sum(phe_autosomes$miscrr==1,na.rm = T),"-",
+                  sum(phe_autosomes$miscrr==0,na.rm = T),"_",
+                  git_hash,"_",time_stamp,"_JB.txt",sep="")
+write.table(phe_autosomes,file_name_A,row.names = F,col.names = T,sep="\t",quote=F)  # local save
+
+file_name_X = paste("phe1_xchr_nCaCo-",
+                    sum(phe_xchromosome$miscrr==1,na.rm = T),"-",
+                    sum(phe_xchromosome$miscrr==0,na.rm = T),"_",
+                    git_hash,"_",time_stamp,"_JB.txt",sep="")
+write.table(phe_xchromosome,file_name_X,row.names = F,col.names = T,sep="\t",quote=F)  # local save
+
+...
 
 
-setwd("~/Dropbox/GIT/MOBA_MISCARRIAGE_META_EGCUT/")
-report = system("git status",intern = T)
-if ( length(grep("modified",report))>0) {
-        git_hash = "--???--" # warn user that script does not represent the contents
-} else {
-        git_hash = system("git log --pretty=format:'%h' -n 1",intern = T)  # get recent git commit version
-}
-time_stamp = gsub("-","",substr(Sys.time(),1,10))
-file_name = paste("pheno1_moms_nCaCo-",
-                  sum(phe$miscrr==1,na.rm = T),"-",
-                  sum(phe$miscrr==0,na.rm = T),
-                  "_",git_hash,"_",time_stamp,"_JB.txt",sep="")
-write.table(phe,file_name,row.names = F,col.names = T,sep="\t",quote=F)  # local
 
 # note, for SNPTEST a second header must be added manually (by Julius, after adding PCs) !
