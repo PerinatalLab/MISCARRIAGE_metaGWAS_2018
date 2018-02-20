@@ -149,8 +149,4 @@ file_name_X = paste("phe1_xchr_nCaCo-",
                     git_hash,"_",time_stamp,"_JB.txt",sep="")
 write.table(phe_xchromosome,file_name_X,row.names = F,col.names = T,sep="\t",quote=F)  # local save
 
-...
-
-
-
 # note, for SNPTEST a second header must be added manually (by Julius, after adding PCs) !
